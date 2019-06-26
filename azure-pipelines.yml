@@ -60,7 +60,7 @@ jobs:
     inputs:
       awsCredentials: 'OIT-AWS-Blockchain-2019'
       regionName: 'us-east-1'
-      awsCommand: 'aws elasticbeanstalk create-application --application-name oitmattermost --region us-east-1 '
+      awsCommand: 'elasticbeanstalk create-application --application-name oitmattermost --region us-east-1 '
       failOnStandardError: false
 
   - task: AWSCLI@1
