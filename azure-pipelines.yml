@@ -36,6 +36,13 @@ jobs:
   - script: which zip;
     displayName: 'find zip cmd'
 
+  - script: |
+      sudo ln -s /home/vsts/.local/bin/aws /usr/bin/aws;
+      which aws;
+      aws --version;
+    displayName: 'symlink aws cmd so task can use it'
+    
+
 #  - task: ECRPushImage@1
 #    inputs:
 #      awsCredentials: 'OIT-AWS-Blockchain-2019'
@@ -44,31 +51,26 @@ jobs:
 #      sourceImageName: 'quay.io/thad/oitmattermost:latest'
 #      repositoryName: 'oitmattermost'
 #      autoCreateRepository: true
-#  - script: |
-#      export PATH="/home/vsts/.local/bin:$PATH";
-#      aws elasticbeanstalk create-application --application-name oitmattermost --region us-east-1
-#      aws elasticbeanstalk create-environment --application-name oitmattermost --environment-name oitmattermost_staging --solution-stack-name "64bit Amazon Linux v2.12.14 running Docker" --option-settings file://options.json --region us-east-1;
-#      zip -r deployment.zip . ;
-#      aws s3 mb s3://oitmattermost-eb --region us-east-1;
-#      aws s3 cp deployment.zip s3://oitmattermost-eb --region us-east-1;
-#      aws elasticbeanstalk create-application-version --application-name oitmattermost --version-label v1 --source-bundle S3Bucket="oitmattermost-eb",S3Key="deployment.zip" --auto-create-application --region us-east-1
-#      aws elasticbeanstalk update-environment --application-name oitmattermost --environment-name oitmattermost_staging --version-label v1 --region us-east-1;
-#    displayName: 'push image and provision eb'
-
-  - script: |
-      sudo ln -s /home/vsts/.local/bin/aws /usr/bin/aws;
-      which aws;
-      aws --version;
-    displayName: 'symlink aws cmd so task can use it'
 
   - task: AWSCLI@1
     displayName: 'AWS CLI 1'
     inputs:
       awsCredentials: 'OIT-AWS-Blockchain-2019'
       regionName: 'us-east-1'
-      awsCommand: 'aws elasticbeanstalk'
-      awsSubCommand: 'create-application --application-name oitmattermost --region us-east-1'
+      awsCommand: 's3 ls'
+#      awsSubCommand: 'create-application --application-name oitmattermost --region us-east-1'
       failOnStandardError: false
+
+  - script: |
+      export PATH="/home/vsts/.local/bin:$PATH";
+      aws elasticbeanstalk create-application --application-name oitmattermost --region us-east-1
+      aws elasticbeanstalk create-environment --application-name oitmattermost --environment-name oitmattermost_staging --solution-stack-name "64bit Amazon Linux v2.12.14 running Docker" --option-settings file://options.json --region us-east-1;
+      zip -r deployment.zip . ;
+      aws s3 mb s3://oitmattermost-eb --region us-east-1;
+      aws s3 cp deployment.zip s3://oitmattermost-eb --region us-east-1;
+      aws elasticbeanstalk create-application-version --application-name oitmattermost --version-label v1 --source-bundle S3Bucket="oitmattermost-eb",S3Key="deployment.zip" --auto-create-application --region us-east-1
+      aws elasticbeanstalk update-environment --application-name oitmattermost --environment-name oitmattermost_staging --version-label v1 --region us-east-1;
+    displayName: 'push image and provision eb'
 
   - task: AWSCLI@1
     displayName: 'AWS CLI 2'
@@ -113,3 +115,20 @@ jobs:
       regionName: 'us-east-1'
       awsCommand: 'aws elasticbeanstalk update-environment --application-name oitmattermost --environment-name oitmattermost_staging --version-label v1 --region us-east-1;'
       failOnStandardError: false
+  - task: S3Upload@1
+    inputs:
+      awsCredentials: 'OIT-AWS-Blockchain-2019'
+      regionName: 'us-east-1'
+      bucketName: 'oitmattermost-eb'
+      sourceFolder: './'
+      globExpressions: 'deployment.zip'
+      targetFolder: 's3://oitmattermost-eb'
+      createBucket: true
+
+  - task: BeanstalkDeployApplication@1
+    inputs:
+      awsCredentials: 'OIT-AWS-Blockchain-2019'
+      regionName: 'us-east-1'
+      applicationName: 'oitmattermost'
+      environmentName: 'oitmattermost_staging'
+      applicationType: 's3'
