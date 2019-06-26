@@ -57,7 +57,8 @@ jobs:
     inputs:
       awsCredentials: 'OIT-AWS-Blockchain-2019'
       regionName: 'us-east-1'
-      awsCommand: 's3 ls'
+      awsCommand: 's3'
+      awsSubCommand: 'ls'
 #      awsSubCommand: 'create-application --application-name oitmattermost --region us-east-1'
       failOnStandardError: false
 
