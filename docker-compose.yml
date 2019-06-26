@@ -2,7 +2,7 @@ version: "2"
 
 services:
 
-  db:
+#  db:
 #    build: db
 #    read_only: true
 #    restart: unless-stopped
@@ -43,7 +43,7 @@ services:
       # in case your config is not in default location
       #- MM_CONFIG=/mattermost/config/config.json
 
-  web:
+#  web:
 #    build: web
 #    ports:
 #      - "80:80"
