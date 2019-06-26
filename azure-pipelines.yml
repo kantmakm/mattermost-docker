@@ -55,6 +55,12 @@ jobs:
 #      aws elasticbeanstalk update-environment --application-name oitmattermost --environment-name oitmattermost_staging --version-label v1 --region us-east-1;
 #    displayName: 'push image and provision eb'
 
+  - script: |
+      sudo ln -s /home/vsts/.local/bin/aws /usr/bin/aws;
+      which aws;
+      aws --version;
+    displayName: 'symlink aws cmd so task can use it'
+
   - task: AWSCLI@1
     displayName: 'AWS CLI 1'
     inputs:
